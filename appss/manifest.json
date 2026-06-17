@@ -1,0 +1,22 @@
+{
+  "short_name": "Multiverso",
+  "name": "Multiverso del Saber",
+  "description": "Portal de Aprendizaje Cósmico Interactivo",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "index.html",
+  "background_color": "#050214",
+  "theme_color": "#a855f7",
+  "display": "standalone",
+  "orientation": "portrait"
+}-
