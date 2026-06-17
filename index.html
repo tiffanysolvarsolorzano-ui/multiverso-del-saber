@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiverso del Saber - Portal Educativo Interactivo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- KaTeX for Beautiful Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        cosmos: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            800: '#1e1b4b',
+                            900: '#0f0b29',
+                            950: '#050214',
+                        },
+                        neon: {
+                            pink: '#ff2a85',
+                            purple: '#a855f7',
+                            cyan: '#06b6d4',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at 50% 0%, #1a103c 0%, #050214 70%);
+            color: #f3f4f6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+        }
+        .neon-border {
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        .glass-panel {
+            background: rgba(15, 11, 41, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-btn:hover:not(:disabled) {
+            background: rgba(168, 85, 247, 0.15);
+            border-color: rgba(168, 85, 247, 0.4);
+            transform: translateY(-2px);
+        }
+        /* ESTILO CORREGIDO: Ahora sí se notará de forma brillante la selección */
+        .glass-btn.active {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.45), rgba(255, 42, 133, 0.45)) !important;
+            border-color: #ff2a85 !important;
+            box-shadow: 0 0 20px rgba(255, 42, 133, 0.4) !important;
+        }
+        .star-field {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.6;
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+        }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        .confetti-piece {
+            position: fixed;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: fall 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg) scale(0); opacity: 0; }
+            15% { opacity: 1; transform: translateY(10vh) rotate(120deg) scale(1.2); }
+            100% { transform: translateY(105vh) rotate(720deg) scale(0.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="relative flex flex-col items-center justify-start min-h-screen p-4 md:p-8 selection:bg-purple-500 selection:text-white">
+
+    <!-- Canvas Star Field Background -->
+    <canvas id="stars" class="star-field"></canvas>
+
+    <!-- App Container -->
+    <div id="app" class="relative z-10 w-full max-w-xl mx-auto flex flex-col justify-between flex-grow">
+        
+        <!-- Header -->
+        <header class="text-center py-4 mb-2 flex items-center justify-between border-b border-white/5">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl floating">🪐</span>
+                <div class="text-left">
+                    <h1 class="font-display font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 text-xl tracking-tight">
+                        MULTIVERSO DEL SABER
+                    </h1>
+                    <p class="text-[10px] tracking-widest text-cyan-400 uppercase font-medium">Portal de Aprendizaje Cósmico</p>
+                </div>
+            </div>
+            <!-- Custom Realtime Cloud Indicator -->
+            <div id="cloud-status" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono">
+                <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" id="status-dot"></span>
+                <span id="status-text" class="text-gray-400">Iniciando...</span>
+            </div>
+        </header>
+
+        <!-- Dynamic Main UI -->
+        <main class="flex-grow flex flex-col justify-center py-2">
+            
+            <!-- HOME SCREEN -->
+            <div id="screen-home" class="space-y-6 transition-all duration-300">
+                <!-- Welcome Card -->
+                <div class="glass-panel rounded-3xl p-6 text-center relative overflow-hidden neon-border">
+                    <div class="absolute -right-16 -top-16 w-36 h-36 bg-purple-600/20 rounded-full blur-3xl"></div>
+                    <div class="absolute -left-16 -bottom-16 w-36 h-36 bg-pink-600/20 rounded-full blur-3xl"></div>
+                    
+                    <h2 class="font-display text-2xl font-bold text-white mb-2">¡Bienvenido Viajero! 👋</h2>
+                    <p class="text-gray-300 text-xs leading-relaxed max-w-sm mx-auto">
+                        Selecciona tu avatar, año de estudio y materia para iniciar una expedición interactiva de conocimiento.
+                    </p>
+                </div>
+
+                <!-- Step 1: Avatar -->
+                <div class="glass-panel rounded-3xl p-5 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+                            <span>🚀</span> 1. Elige tu Avatar
+                        </h3>
+                        <span id="avatar-label" class="text-xs text-cyan-400 font-bold font-mono">Astronauta</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-3" id="avatar-selector">
+                        <button onclick="selectAvatar('👨‍🚀', 'Astronauta', this)" class="avatar-btn glass-btn py-4 rounded-2xl text-3xl active">👨‍🚀</button>
+                        <button onclick="selectAvatar('👩‍🔬', 'Científica', this)" class="avatar-btn glass-btn py-4 rounded-2xl text-3xl">👩‍🔬</button>
+                        <button onclick="selectAvatar('🦖', 'Dino-Saber', this)" class="avatar-btn glass-btn py-4 rounded-2xl text-3xl">🦖</button>
+                        <button onclick="selectAvatar('🦄', 'Unicornio', this)" class="avatar-btn glass-btn py-4 rounded-2xl text-3xl">🦄</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Grade Selection -->
+                <div class="glass-panel rounded-3xl p-5 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+                        <span>🎓</span> 2. Año Escolar
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                        <button onclick="selectGrade('basica', this)" class="grade-btn glass-btn py-3.5 px-4 rounded-2xl text-left flex items-center justify-between text-sm">
+                            <span class="font-semibold text-white">Básica</span>
+                            <span class="text-[10px] opacity-70 bg-purple-500/20 text-purple-300 py-0.5 px-1.5 rounded">5to-7mo</span>
+                        </button>
+                        <button onclick="selectGrade('media', this)" class="grade-btn glass-btn py-3.5 px-4 rounded-2xl text-left flex items-center justify-between text-sm">
+                            <span class="font-semibold text-white">Media</span>
+                            <span class="text-[10px] opacity-70 bg-cyan-500/20 text-cyan-300 py-0.5 px-1.5 rounded">8vo-10mo</span>
+                        </button>
+                        <button onclick="selectGrade('bachi', this)" class="grade-btn glass-btn py-3.5 px-4 rounded-2xl text-left flex items-center justify-between text-sm">
+                            <span class="font-semibold text-white">Bachillerato</span>
+                            <span class="text-[10px] opacity-70 bg-pink-500/20 text-pink-300 py-0.5 px-1.5 rounded">BGU</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Subject Selection -->
+                <div class="glass-panel rounded-3xl p-5 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+                        <span>🧭</span> 3. Escoge tu Materia o Desafío
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="selectSubject('matematicas', this)" class="subject-btn glass-btn p-3.5 rounded-2xl text-center flex flex-col items-center gap-1">
+                            <span class="text-2xl">🧮</span>
+                            <span class="text-xs font-bold text-white">Matemáticas</span>
+                        </button>
+                        <button onclick="selectSubject('lengua', this)" class="subject-btn glass-btn p-3.5 rounded-2xl text-center flex flex-col items-center gap-1">
+                            <span class="text-2xl">📖</span>
+                            <span class="text-xs font-bold text-white">Lengua</span>
+                        </button>
+                        <button onclick="selectSubject('ingles', this)" class="subject-btn glass-btn p-3.5 rounded-2xl text-center flex flex-col items-center gap-1">
+                            <span class="text-2xl">🔡</span>
+                            <span class="text-xs font-bold text-white">Inglés</span>
+                        </button>
+                        <button onclick="selectSubject('biologia', this)" class="subject-btn glass-btn p-3.5 rounded-2xl text-center flex flex-col items-center gap-1">
+                            <span class="text-2xl">🧬</span>
+                            <span class="text-xs font-bold text-white">Biología</span>
+                        </button>
+                        <button onclick="selectSubject('mix', this)" class="subject-btn glass-btn col-span-2 p-3 rounded-2xl text-center flex items-center justify-center gap-2 border-dashed border-purple-500/40">
+                            <span class="text-lg">✨</span>
+                            <span class="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Mix del Multiverso</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Hub -->
+                <div class="space-y-3 pt-2">
+                    <button id="btn-start-quiz" onclick="startQuiz()" class="w-full py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-pink-500/20 active:translate-y-0 text-sm tracking-wider uppercase font-display flex items-center justify-center gap-2">
+                        <span>🚀</span> ¡Iniciar Expedición!
+                    </button>
+                    <div class="flex justify-between items-center px-2">
+                        <button onclick="showScreen('screen-creator')" class="text-xs text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1">
+                            <span>➕</span> Añadir mis preguntas
+                        </button>
+                        <button onclick="showScreen('screen-leaderboard')" class="text-xs text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1">
+                            <span>🏆</span> Ver Tabla de Líderes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CREATOR SCREEN -->
+            <div id="screen-creator" class="hidden space-y-5 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <button onclick="showScreen('screen-home')" class="glass-btn px-4 py-2 rounded-xl text-xs flex items-center gap-1 text-purple-300">
+                        <span>←</span> Atrás
+                    </button>
+                    <h2 class="font-display font-bold text-white text-sm">Creador Cósmico de Preguntas</h2>
+                </div>
+
+                <div class="glass-panel rounded-3xl p-6 space-y-4">
+                    <p class="text-xs text-gray-400">Añade tus propias preguntas que se sincronizarán inmediatamente con la nube para toda la comunidad.</p>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] text-purple-300 uppercase font-semibold block mb-1">Año Escolar</label>
+                            <select id="create-lvl" class="w-full bg-cosmos-900/80 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-purple-500">
+                                <option value="basica">Básica (5to-7mo)</option>
+                                <option value="media">Media (8vo-10mo)</option>
+                                <option value="bachi">Bachillerato</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-purple-300 uppercase font-semibold block mb-1">Materia</label>
+                            <select id="create-sub" class="w-full bg-cosmos-900/80 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-purple-500">
+                                <option value="matematicas">Matemáticas</option>
+                                <option value="lengua">Lengua</option>
+                                <option value="ingles">Inglés</option>
+                                <option value="biologia">Biología</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-[10px] text-purple-300 uppercase font-semibold block mb-1">Pregunta (Soporta LaTeX, ej. $x^2 = 4$)</label>
+                            <input type="text" id="create-q" placeholder="¿Cuál es la raíz cuadrada de... ?" class="w-full bg-cosmos-900/80 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-purple-500 placeholder-white/25">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-green-400 uppercase font-semibold block mb-1">Respuesta Correcta</label>
+                            <input type="text" id="create-a" placeholder="Escribe la respuesta correcta" class="w-full bg-green-950/20 border border-green-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-green-500 placeholder-white/25">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-red-400 uppercase font-semibold block mb-1">Opción Incorrecta 1</label>
+                            <input type="text" id="create-w1" placeholder="Opción incorrecta" class="w-full bg-red-950/20 border border-red-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-red-500 placeholder-white/25">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-red-400 uppercase font-semibold block mb-1">Opción Incorrecta 2</label>
+                            <input type="text" id="create-w2" placeholder="Otra opción incorrecta" class="w-full bg-red-950/20 border border-red-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-red-500 placeholder-white/25">
+                        </div>
+                    </div>
+
+                    <button onclick="handleSaveQuestion()" class="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                        <span>💾</span> Guardar en el Multiverso
+                    </button>
+                </div>
+            </div>
+
+            <!-- LEADERBOARD SCREEN -->
+            <div id="screen-leaderboard" class="hidden space-y-4 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <button onclick="showScreen('screen-home')" class="glass-btn px-4 py-2 rounded-xl text-xs flex items-center gap-1 text-purple-300">
+                        <span>←</span> Inicio
+                    </button>
+                    <h2 class="font-display font-bold text-white text-sm">Exploradores Destacados</h2>
+                </div>
+
+                <div class="glass-panel rounded-3xl p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                        <p class="text-xs text-gray-400">Ránking de mejores puntuaciones en vivo.</p>
+                        <button onclick="clearCloudLeaderboard()" class="text-[10px] text-red-400 hover:underline">Reiniciar Ránking</button>
+                    </div>
+
+                    <div id="leaderboard-list" class="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                        <!-- Sincronizado dinámicamente -->
+                        <div class="text-center text-xs text-gray-500 py-8">Cargando viajeros de las galaxias...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUIZ SCREEN -->
+            <div id="screen-quiz" class="hidden space-y-5 transition-all duration-300">
+                <!-- Status bar -->
+                <div class="flex items-center justify-between px-2">
+                    <div class="flex items-center gap-2">
+                        <span id="quiz-avatar-display" class="text-2xl">👨‍🚀</span>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-widest font-mono" id="quiz-badge">Básica - Lengua</p>
+                            <p class="text-[10px] text-cyan-400" id="quiz-author"></p>
+                        </div>
+                    </div>
+                    <!-- Circular Countdown Timer -->
+                    <div class="relative flex items-center justify-center w-12 h-12">
+                        <svg class="w-full h-full">
+                            <circle class="text-white/10" stroke-width="3" stroke="currentColor" fill="transparent" r="18" cx="24" cy="24" />
+                            <circle class="progress-ring__circle text-pink-500" id="timer-progress" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="0" stroke="currentColor" fill="transparent" r="18" cx="24" cy="24" />
+                        </svg>
+                        <span class="absolute text-xs font-bold text-white font-mono" id="timer-text">15</span>
+                    </div>
+                </div>
+
+                <!-- Main Quiz Board -->
+                <div class="glass-panel rounded-3xl p-6 text-center space-y-6 neon-border relative overflow-hidden">
+                    <!-- Progress bar -->
+                    <div class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                        <div id="quiz-progress-bar" class="bg-gradient-to-r from-purple-500 to-pink-500 h-full w-[20%] transition-all duration-500"></div>
+                    </div>
+
+                    <!-- Question text -->
+                    <div class="min-h-[80px] flex items-center justify-center">
+                        <h2 id="quiz-question-text" class="text-base font-semibold leading-relaxed text-white"></h2>
+                    </div>
+
+                    <!-- Options -->
+                    <div id="quiz-options-container" class="space-y-3">
+                        <!-- Generated Dynamically -->
+                    </div>
+
+                    <!-- Lifelines (Comodines) -->
+                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-white/5">
+                        <button id="btn-lifeline-fifty" onclick="useFiftyFifty()" class="glass-btn py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 text-purple-300">
+                            <span>✨</span> Comodín 50:50
+                        </button>
+                        <button id="btn-lifeline-skip" onclick="useSkip()" class="glass-btn py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 text-cyan-300">
+                            <span>⏭️</span> Saltar Pregunta
+                        </button>
+                    </div>
+
+                    <!-- Bottom feedback info -->
+                    <div class="h-4 flex items-center justify-center">
+                        <p id="quiz-feedback" class="text-xs font-bold transition-all duration-300"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULTS SCREEN -->
+            <div id="screen-results" class="hidden space-y-6 transition-all duration-300 text-center">
+                <div class="glass-panel rounded-3xl p-8 space-y-5 neon-border relative overflow-hidden">
+                    <div class="absolute -right-16 -top-16 w-36 h-36 bg-purple-600/15 rounded-full blur-3xl"></div>
+                    
+                    <span id="res-avatar-emoji" class="text-7xl block floating">👨‍🚀</span>
+                    
+                    <div>
+                        <h2 class="text-2xl font-display font-extrabold text-white">¡Viaje Completado!</h2>
+                        <p id="res-subtitle" class="text-xs text-purple-300 mt-1">Has regresado a salvo a la base orbital</p>
+                    </div>
+
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-4 inline-block mx-auto min-w-[200px]">
+                        <p class="text-[10px] uppercase text-gray-400 tracking-wider">Puntuación Final</p>
+                        <p class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 font-mono my-1" id="res-score-text">0/5</p>
+                        <p class="text-[10px] text-cyan-400" id="res-evaluation"></p>
+                    </div>
+
+                    <!-- Save score to Leaderboard Form -->
+                    <div class="space-y-2 pt-2 text-left">
+                        <label class="text-[10px] uppercase tracking-wider text-purple-300 block font-semibold">Inscribe tu nombre en la tabla de Líderes</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="leaderboard-name" placeholder="Tu Nombre o Apodo" class="flex-grow bg-cosmos-900/80 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-purple-500 placeholder-white/25">
+                            <button onclick="handleSaveScore()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 transition-all text-xs font-bold px-4 rounded-xl text-white">Inscribirse</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="resetApp()" class="w-full py-4 rounded-2xl font-bold text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 text-sm tracking-wider uppercase font-display flex items-center justify-center gap-2">
+                    <span>🏠</span> Regresar al Inicio
+                </button>
+            </div>
+
+        </main>
+
+        <!-- Footer Credits -->
+        <footer class="py-4 text-center border-t border-white/5">
+            <p class="text-[10px] text-gray-500 leading-relaxed">
+                Multiverso del Saber © 2026. Impulsado por Inteligencia Artificial y Cloud Firestore.
+            </p>
+        </footer>
+    </div>
+
+    <!-- Beautiful Custom Notification Portal (No Alerts allowed) -->
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 glass-panel px-5 py-3 rounded-2xl border border-pink-500/30 text-white text-xs font-semibold shadow-xl opacity-0 translate-y-4 pointer-events-none transition-all duration-300 flex items-center gap-2">
+        <span id="toast-icon">✨</span>
+        <span id="toast-text">Notificación cósmica</span>
+    </div>
+
+    <!-- Firebase System Integration & Main Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Predefined Academic Question Database (Math has LaTeX formatting code)
+        const PRESETS_DB = { 
+            basica: { 
+                matematicas: [
+                    {q: "Calcule el valor de: $8 \\times 7$", a: "56", w: ["48", "54"]},
+                    {q: "Simplifique la siguiente suma: $45 + 36$", a: "81", w: ["71", "91"]},
+                    {q: "¿Cuál es la mitad exacta de $60$?", a: "30", w: ["20", "40"]},
+                    {q: "¿Cuántos lados rectos tiene un triángulo?", a: "3", w: ["4", "5"]},
+                    {q: "Encuentre el $10\\%$ de $100$", a: "10", w: ["5", "20"]}
+                ], 
+                lengua: [
+                    {q: "¿Cuál es el sinónimo de la palabra 'feliz'?", a: "Alegre", w: ["Triste", "Enojado"]},
+                    {q: "¿Qué función cumple un verbo en una oración?", a: "Denotar acción", w: ["Nombrar un objeto", "Describir cualidades"]},
+                    {q: "¿Cuál es el antónimo correcto de la palabra 'frío'?", a: "Caliente", w: ["Tibio", "Gélido"]},
+                    {q: "¿Qué parte de la estructura de un cuento introduce a los personajes?", a: "Inicio", w: ["Nudo", "Desenlace"]},
+                    {q: "De las siguientes opciones, ¿cuál es un sustantivo común?", a: "Mesa", w: ["Correr", "Luminoso"]}
+                ], 
+                ingles: [
+                    {q: "Translate the word: 'Casa'", a: "House", w: ["Car", "Dog"]},
+                    {q: "How do you say 'Gato' in English?", a: "Cat", w: ["Bird", "Fish"]},
+                    {q: "Choose the correct translation for 'Perro'", a: "Dog", w: ["Cat", "Rabbit"]},
+                    {q: "What color is the sky on a sunny day?", a: "Blue", w: ["Red", "Green"]},
+                    {q: "Choose the standard greeting:", a: "Hello", w: ["Goodbye", "Thank you"]}
+                ], 
+                biologia: [
+                    {q: "¿Los hongos, bacterias y plantas pertenecen a seres vivos?", a: "Sí", w: ["No", "Solo las plantas"]},
+                    {q: "Let us review where we live. ¿En qué planeta del sistema solar nos encontramos?", a: "Tierra", w: ["Marte", "Venus"]},
+                    {q: "¿Qué elemento vital necesita una planta para realizar fotosíntesis?", a: "Luz Solar", w: ["Metales", "Rocas"]},
+                    {q: "¿Qué fluido transporta principalmente el corazón?", a: "Sangre", w: ["Oxígeno puro", "Agua"]},
+                    {q: "¿Cuál es la unidad anatómica fundamental de la vida?", a: "Célula", w: ["Tejido", "Átomo"]}
+                ] 
+            },
+            media: { 
+                matematicas: [
+                    {q: "Resuelva para la variable $x$: $3x = 21$", a: "7", w: ["3", "6"]},
+                    {q: "Calcule la raíz cuadrada: $\\sqrt{64}$", a: "8", w: ["6", "12"]},
+                    {q: "Calcule el $15\\%$ de $300$", a: "45", w: ["30", "25"]},
+                    {q: "¿Qué teorema se aplica únicamente en triángulos rectángulos?", a: "Teorema de Pitágoras", w: ["Teorema de Newton", "Teorema de Tales"]},
+                    {q: "Seleccione un número primo entre las opciones:", a: "7", w: ["4", "9"]}
+                ], 
+                lengua: [
+                    {q: "¿Qué es una metáfora en la literatura?", a: "Una comparación indirecta", w: ["Un verbo de acción", "Un cuento tradicional"]},
+                    {q: "¿Cuál es el sinónimo de la palabra 'veloz'?", a: "Rápido", w: ["Lento", "Pesado"]},
+                    {q: "¿Cuál es la función principal del adjetivo?", a: "Describir al sustantivo", w: ["Expresar acciones", "Reemplazar nombres"]},
+                    {q: "En sintaxis, ¿qué define formalmente al sujeto?", a: "Quien realiza la acción", w: ["El objeto directo", "El verbo principal"]},
+                    {q: "¿A qué género literario pertenece el poema?", a: "Género Lírico", w: ["Género Narrativo", "Género Dramático"]}
+                ], 
+                ingles: [
+                    {q: "What is the past tense form of the verb 'to eat'?", a: "Ate", w: ["Eaten", "Eating"]},
+                    {q: "What is the past tense form of the verb 'to go'?", a: "Went", w: ["Gone", "Goed"]},
+                    {q: "Choose the antonym of the word 'fast'", a: "Slow", w: ["Quick", "High"]},
+                    {q: "How many days are there in a standard week?", a: "Seven", w: ["Five", "Six"]},
+                    {q: "Which month comes directly after May?", a: "June", w: ["July", "April"]}
+                ], 
+                biologia: [
+                    {q: "¿Qué estructura orgánica compone a todo organismo?", a: "Célula", w: ["Átomo", "Órgano complejo"]},
+                    {q: "¿Cuál de estos órganos forma parte del sistema digestivo?", a: "Estómago", w: ["Cerebro", "Pulmón"]},
+                    {q: "¿Cuál es la principal fuente de energía lumínica para la Tierra?", a: "El Sol", w: ["La Luna", "Las estrellas distantes"]},
+                    {q: "¿Cómo se llama la capa más externa de la Tierra?", a: "Corteza", w: ["Manto", "Núcleo"]},
+                    {q: "¿Cuál es la función motriz del sistema óseo?", a: "Brindar sostén y protección", w: ["Pensamiento abstracto", "Filtrar toxinas"]}
+                ] 
+            },
+            bachi: { 
+                matematicas: [
+                    {q: "Derive la siguiente función matemática: $f(x) = x^2$", a: "2x", w: ["x", "1"]},
+                    {q: "Determine la fórmula del área de un círculo:", a: "$\\pi \\cdot r^2$", w: ["$2 \\cdot \\pi \\cdot r$", "$\\pi \\cdot d$"]},
+                    {q: "Encuentre el valor de $\\sin(90^\\circ)$", a: "1", w: ["0", "-1"]},
+                    {q: "Encuentre el valor del logaritmo: $\\ln(1)$", a: "0", w: ["1", "$e$"]},
+                    {q: "Identifique la fórmula correcta del Teorema de Pitágoras:", a: "$c^2 = a^2 + b^2$", w: ["$c = a + b$", "$A = b \\cdot h$"]}
+                ], 
+                lengua: [
+                    {q: "¿Quién es el autor de 'Don Quijote de la Mancha'?", a: "Miguel de Cervantes", w: ["Federico García Lorca", "Gabriel García Márquez"]},
+                    {q: "¿Qué tipo de texto académico expone y argumenta un tema?", a: "Ensayo Argumentativo", w: ["Poema Lírico", "Crónica Periodística"]},
+                    {q: "¿Qué figura retórica expresa una contradicción aparente (ej. 'fuego helado')?", a: "Oxímoron", w: ["Metáfora", "Hipérbole"]},
+                    {q: "Let us review history. ¿Qué fue el Barroco históricamente?", a: "Un movimiento artístico y cultural", w: ["Un poema corto medieval", "Una estructura lingüística"]},
+                    {q: "¿Quién escribió la célebre novela 'Cien años de soledad'?", a: "Gabriel García Márquez", w: ["Pablo Neruda", "Jorge Luis Borges"]}
+                ], 
+                ingles: [
+                    {q: "What is the closest synonym to the word 'reliable'?", a: "Trustworthy", w: ["Fast", "Moody"]},
+                    {q: "Identify the modal verb among the options:", a: "Can", w: ["Run", "Slept"]},
+                    {q: "Which structure represents the Present Perfect tense?", a: "Have/Has + Past Participle", w: ["Did + verb", "Will + verb"]},
+                    {q: "What is the opposite of the word 'expensive'?", a: "Cheap", w: ["Pricey", "Grand"]},
+                    {q: "Translate the word 'bookshelf' correctly:", a: "Estantería de libros", w: ["Escritorio", "Librería"]}
+                ], 
+                biologia: [
+                    {q: "¿Qué proceso celular convierte dióxido de carbono en materia orgánica?", a: "Fotosíntesis", w: ["Respiración anaeróbica", "Mitosis"]},
+                    {q: "¿Qué macromolécula contiene toda la información hereditaria celular?", a: "Ácido Desoxirribonucleico (ADN)", w: ["Proteína globular", "Glúcido ramificado"]},
+                    {q: "¿Cómo se denomina la división celular de células somáticas?", a: "Mitosis", w: ["Meiosis", "Fisión nuclear"]},
+                    {q: "¿Qué orgánulo es responsable de la respiración celular y producción de ATP?", a: "Mitocondria", w: ["Lisosoma", "Ribosoma"]},
+                    {q: "¿Qué unidad mínima almacena información genética?", a: "Gen", w: ["Cromosoma entero", "Enzima"]}
+                ] 
+            }
+        };
+
+        // Synthesized Retro Sound Generator (No external files required)
+        const sound = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playCorrect() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.type = 'triangle';
+                
+                // Arpeggio
+                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.2); // G5
+                osc.frequency.setValueAtTime(1046.50, this.ctx.currentTime + 0.3); // C6
+                
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.5);
+            },
+            playWrong() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.type = 'sawtooth';
+                
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.3);
+                
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.35);
+            },
+            playClick() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+        };
+        // App State
+        let state = {
+            avatar: '👨‍🚀',
+            avatarName: 'Astronauta',
+            lvl: '', // basica, media, bachi
+            sub: '', // matematicas, lengua, ingles, biologia, mix
+            score: 0,
+            idx: 0,
+            qSet: [],
+            attempts: 0,
+            perfect: true,
+            communityQuestions: []
+        };
+
+        // Timer State Variables
+        let timerInterval = null;
+        let timeLeft = 15;
+        const maxTime = 15;
+
+        // Custom global elements from context
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'multiverso-del-saber';
+    // --- CONFIGURACIÓN DE SEGURIDAD ---
+const app = null;
+const auth = null;
+const db = null;
+
+// Bind helpers to window to support HTML inline attributes
+window.selectAvatar = selectAvatar;
+window.selectGrade = selectGrade;
+window.selectSubject = selectSubject;
+window.showScreen = showScreen;
+window.startQuiz = startQuiz;
+window.handleSaveQuestion = handleSaveQuestion;
+window.handleSaveScore = handleSaveScore;
+window.resetApp = resetApp;
+window.useFiftyFifty = useFiftyFifty;
+window.useSkip = useSkip;
+        // Bind helpers to window to support HTML inline attributes
+        window.selectAvatar = selectAvatar;
+        window.selectGrade = selectGrade;
+        window.selectSubject = selectSubject;
+        window.showScreen = showScreen;
+        window.startQuiz = startQuiz;
+        window.handleSaveQuestion = handleSaveQuestion;
+        window.handleSaveScore = handleSaveScore;
+        window.resetApp = resetApp;
+        window.useFiftyFifty = useFiftyFifty;
+        window.useSkip = useSkip;
+        window.clearCloudLeaderboard = clearCloudLeaderboard;
+
+        // Init App On Authentication Complete
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth Error:", error);
+                showToast("⚠️ Fallo al conectar en órbita.", "red");
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-emerald-400";
+                document.getElementById('status-text').innerText = "Línea Segura";
+                document.getElementById('status-text').className = "text-emerald-400";
+                
+                // Real-time listener for community questions
+                loadCommunityQuestions(user);
+                // Real-time listener for leaderboard
+                loadLeaderboard(user);
+            } else {
+                document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-yellow-400 animate-pulse";
+                document.getElementById('status-text').innerText = "Conectando...";
+            }
+        });
+
+        // Load community questions in real-time
+        function loadCommunityQuestions(user) {
+            if (!user) return;
+            const qCollection = collection(db, 'artifacts', appId, 'public', 'data', 'questions');
+            onSnapshot(qCollection, (snapshot) => {
+                const questions = [];
+                snapshot.forEach((doc) => {
+                    questions.push(doc.data());
+                });
+                state.communityQuestions = questions;
+            }, (err) => {
+                console.error("Firestore loading error:", err);
+            });
+        }
+
+        // Load Leaderboard in real-time
+        function loadLeaderboard(user) {
+            if (!user) return;
+            const leaderboardCollection = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+            onSnapshot(leaderboardCollection, (snapshot) => {
+                const scores = [];
+                snapshot.forEach((doc) => {
+                    scores.push(doc.data());
+                });
+
+                // Manual memory sort & limit
+                scores.sort((a, b) => b.score - a.score || b.timestamp - a.timestamp);
+                const topScores = scores.slice(0, 10);
+
+                const listContainer = document.getElementById('leaderboard-list');
+                listContainer.innerHTML = '';
+
+                if (topScores.length === 0) {
+                    listContainer.innerHTML = `<div class="text-center text-xs text-gray-500 py-8">Aún no hay pioneros registrados. ¡Inscribe tu marca!</div>`;
+                    return;
+                }
+
+                topScores.forEach((item, index) => {
+                    let medal = "🪐";
+                    if (index === 0) medal = "🥇";
+                    else if (index === 1) medal = "🥈";
+                    else if (index === 2) medal = "🥉";
+
+                    const card = document.createElement('div');
+                    card.className = "flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 text-xs";
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-gray-400 w-5">${medal}</span>
+                            <span class="text-xl">${item.avatar || '👤'}</span>
+                            <div>
+                                <p class="font-bold text-white">${escapeHtml(item.name)}</p>
+                                <p class="text-[9px] text-gray-400 uppercase tracking-wider">${item.level} • ${item.subject}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-mono text-cyan-400 font-bold text-sm">${item.score}/5</span>
+                            <p class="text-[8px] text-gray-500">Aciertos</p>
+                        </div>
+                    `;
+                    listContainer.appendChild(card);
+                });
+            }, (err) => {
+                console.error("Leaderboard loading error:", err);
+            });
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Starfield dynamic background decoration
+        const canvas = document.getElementById('stars');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function resizeStarsCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initStars();
+        }
+
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < 70; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5,
+                    alpha: Math.random(),
+                    speed: 0.01 + Math.random() * 0.02
+                });
+            }
+        }
+
+        function animateStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                ctx.fill();
+                
+                star.alpha += star.speed;
+                if (star.alpha > 1 || star.alpha < 0) {
+                    star.speed = -star.speed;
+                }
+            });
+            requestAnimationFrame(animateStars);
+        }
+
+        window.addEventListener('resize', resizeStarsCanvas);
+        resizeStarsCanvas();
+        animateStars();
+
+        function showToast(text, type = "purple", customIcon = "✨") {
+            const toast = document.getElementById('toast');
+            const iconEl = document.getElementById('toast-icon');
+            const textEl = document.getElementById('toast-text');
+
+            iconEl.innerText = customIcon;
+            textEl.innerText = text;
+
+            toast.className = `fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 glass-panel px-5 py-3 rounded-2xl border text-white text-xs font-semibold shadow-xl transition-all duration-300 flex items-center gap-2 opacity-100 translate-y-0`;
+            if (type === "red") {
+                toast.classList.add('border-red-500/50', 'bg-red-950/40');
+            } else if (type === "green") {
+                toast.classList.add('border-emerald-500/50', 'bg-emerald-950/40');
+            } else {
+                toast.classList.add('border-purple-500/50', 'bg-cosmos-900/80');
+            }
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-4');
+            }, 3000);
+        }
+
+        function showScreen(screenId) {
+            sound.playClick();
+            const screens = ['screen-home', 'screen-creator', 'screen-leaderboard', 'screen-quiz', 'screen-results'];
+            screens.forEach(s => {
+                const el = document.getElementById(s);
+                if (s === screenId) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+        }
+
+        function selectAvatar(avatar, name, element) {
+            sound.playClick();
+            state.avatar = avatar;
+            state.avatarName = name;
+            document.getElementById('avatar-label').innerText = name;
+            document.querySelectorAll('.avatar-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function selectGrade(grade, element) {
+            sound.playClick();
+            state.lvl = grade;
+            document.querySelectorAll('.grade-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function selectSubject(sub, element) {
+            sound.playClick();
+            state.sub = sub;
+            document.querySelectorAll('.subject-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function startQuiz() {
+            if (!state.lvl) {
+                showToast("Por favor selecciona un año escolar", "red", "🎓");
+                return;
+            }
+            if (!state.sub) {
+                showToast("Por favor selecciona una materia", "red", "🧭");
+                return;
+            }
+
+            sound.playClick();
+            state.score = 0;
+            state.idx = 0;
+            state.perfect = true;
+
+            let d = [];
+            if (state.sub === 'mix') {
+                for (let category in PRESETS_DB[state.lvl]) {
+                    PRESETS_DB[state.lvl][category].forEach(q => {
+                        d.push({...q, category: category, source: 'Estándar'});
+                    });
+                }
+
+                state.communityQuestions.forEach(q => {
+                    if (q.lvl === state.lvl) {
+                        d.push({...q, source: 'Comunidad'});
+                    }
+                });
+            } else {
+                const presets = PRESETS_DB[state.lvl][state.sub] || [];
+                presets.forEach(q => {
+                    d.push({...q, category: state.sub, source: 'Estándar'});
+                });
+
+                state.communityQuestions.forEach(q => {
+                    if (q.lvl === state.lvl && q.sub === state.sub) {
+                        d.push({...q, source: 'Comunidad'});
+                    }
+                });
+            }
+
+            state.qSet = d.sort(() => Math.random() - 0.5).slice(0, 5);
+
+            if (state.qSet.length === 0) {
+                showToast("No hay preguntas disponibles aún", "red", "💨");
+                return;
+            }
+
+            document.getElementById('quiz-avatar-display').innerText = state.avatar;
+            document.getElementById('quiz-badge').innerText = `${state.lvl.toUpperCase()} - ${state.sub.toUpperCase()}`;
+            
+            document.getElementById('btn-lifeline-fifty').disabled = false;
+            document.getElementById('btn-lifeline-fifty').className = "glass-btn py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 text-purple-300";
+            document.getElementById('btn-lifeline-skip').disabled = false;
+            document.getElementById('btn-lifeline-skip').className = "glass-btn py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 text-cyan-300";
+
+            showScreen('screen-quiz');
+            loadQuestion();
+        }
+
+        function useFiftyFifty() {
+            sound.playClick();
+            const currentQ = state.qSet[state.idx];
+            const optionButtons = Array.from(document.querySelectorAll('#quiz-options-container button'));
+            
+            const incorrectButtons = optionButtons.filter(btn => btn.innerText !== currentQ.a);
+            
+            if (incorrectButtons.length >= 2) {
+                const indexToRemove = Math.floor(Math.random() * incorrectButtons.length);
+                incorrectButtons[indexToRemove].style.opacity = '0.2';
+                incorrectButtons[indexToRemove].disabled = true;
+            }
+
+            const ffBtn = document.getElementById('btn-lifeline-fifty');
+            ffBtn.disabled = true;
+            ffBtn.className = "glass-btn py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 opacity-30 cursor-not-allowed";
+            showToast("Se eliminó una opción incorrecta", "purple", "✨");
+        }
+
+        function useSkip() {
+            sound.playClick();
+            clearInterval(timerInterval);
+            
+            const skipBtn = document.getElementById('btn-lifeline-skip');
+            skipBtn.disabled = true;
+            skipBtn.className = "glass-btn py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 opacity-30 cursor-not-allowed";
+
+            showToast("Pregunta omitida", "purple", "⏭️");
+            
+            setTimeout(() => {
+                state.idx++;
+                if (state.idx < state.qSet.length) {
+                    loadQuestion();
+                } else {
+                    finishQuiz();
+                }
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            state.attempts = 0;
+            const currentQ = state.qSet[state.idx];
+            
+            document.getElementById('quiz-question-text').innerHTML = currentQ.q;
+            document.getElementById('quiz-author').innerText = currentQ.source === 'Comunidad' ? `Autor: ${currentQ.author || 'Anónimo'}` : 'Materia Oficial';
+
+            const progressPct = ((state.idx) / state.qSet.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progressPct}%`;
+
+            const allOptions = [...currentQ.w, currentQ.a].sort(() => Math.random() - 0.5);
+            const container = document.getElementById('quiz-options-container');
+            container.innerHTML = '';
+            document.getElementById('quiz-feedback').innerText = '';
+
+            allOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full p-4 rounded-2xl text-xs font-semibold text-white glass-btn text-left flex items-center justify-between";
+                btn.innerHTML = `<span>${opt}</span> <span class="opacity-0">📍</span>`;
+                
+                btn.onclick = () => handleAnswer(opt, btn, currentQ.a);
+                container.appendChild(btn);
+            });
+
+            if (window.renderMathInElement) {
+                renderMathInElement(document.getElementById('screen-quiz'), {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false}
+                    ]
+                });
+            }
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = maxTime;
+            updateTimerUI();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeOut();
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const timerText = document.getElementById('timer-text');
+            const progressCircle = document.getElementById('timer-progress');
+            
+            timerText.innerText = timeLeft;
+            
+            const radius = 18;
+            const circumference = 2 * Math.PI * radius; 
+            const strokeDashoffset = circumference - (timeLeft / maxTime) * circumference;
+            progressCircle.style.strokeDashoffset = strokeDashoffset;
+
+            if (timeLeft <= 5) {
+                progressCircle.className = "progress-ring__circle text-red-500";
+                timerText.className = "absolute text-xs font-bold text-red-500 font-mono";
+            } else {
+                progressCircle.className = "progress-ring__circle text-pink-500";
+                timerText.className = "absolute text-xs font-bold text-white font-mono";
+            }
+        }
+
+        function handleTimeOut() {
+            sound.playWrong();
+            state.perfect = false;
+            document.getElementById('quiz-feedback').innerText = "⌛ ¡Tiempo agotado! Siguiente...";
+            document.getElementById('quiz-feedback').className = "text-xs font-bold text-red-400";
+            
+            disableOptionButtons();
+
+            setTimeout(() => {
+                state.idx++;
+                if (state.idx < state.qSet.length) {
+                    loadQuestion();
+                } else {
+                    finishQuiz();
+                }
+            }, 1500);
+        }
+
+        function disableOptionButtons() {
+            const btns = document.querySelectorAll('#quiz-options-container button');
+            btns.forEach(btn => btn.disabled = true);
+        }
+
+        function handleAnswer(chosen, btn, correct) {
+            clearInterval(timerInterval);
+            disableOptionButtons();
+
+            if (chosen === correct) {
+                sound.playCorrect();
+                state.score++;
+                btn.classList.add('border-emerald-500/50', 'bg-emerald-950/40');
+                btn.querySelector('span:last-child').className = "text-emerald-400 opacity-100";
+                btn.querySelector('span:last-child').innerText = "✓";
+
+                document.getElementById('quiz-feedback').innerText = "¡En órbita! Respuesta Correcta 🛸";
+                document.getElementById('quiz-feedback').className = "text-xs font-bold text-emerald-400";
+
+                setTimeout(() => {
+                    state.idx++;
+                    if (state.idx < state.qSet.length) {
+                        loadQuestion();
+                    } else {
+                        finishQuiz();
+                    }
+                }, 1200);
+            } else {
+                sound.playWrong();
+                state.perfect = false;
+                btn.classList.add('border-red-500/50', 'bg-red-950/40');
+                btn.querySelector('span:last-child').className = "text-red-400 opacity-100";
+                btn.querySelector('span:last-child').innerText = "✗";
+
+                if (state.attempts === 0) {
+                    state.attempts++;
+                    document.getElementById('quiz-feedback').innerText = "Desviado. Reintentando la última oportunidad...";
+                    document.getElementById('quiz-feedback').className = "text-xs font-bold text-yellow-400";
+                    
+                    setTimeout(() => {
+                        const buttons = document.querySelectorAll('#quiz-options-container button');
+                        buttons.forEach(b => {
+                            if (!b.classList.contains('border-red-500/50')) {
+                                b.disabled = false;
+                            }
+                        });
+                        startTimer();
+                    }, 1200);
+                } else {
+                    document.getElementById('quiz-feedback').innerText = "Impacto crítico. Saltando...";
+                    document.getElementById('quiz-feedback').className = "text-xs font-bold text-red-400";
+
+                    setTimeout(() => {
+                        state.idx++;
+                        if (state.idx < state.qSet.length) {
+                            loadQuestion();
+                        } else {
+                            finishQuiz();
+                        }
+                    }, 1500);
+                }
+            }
+        }
+
+        function finishQuiz() {
+            clearInterval(timerInterval);
+            document.getElementById('quiz-progress-bar').style.width = '100%';
+            
+            showScreen('screen-results');
+            document.getElementById('res-avatar-emoji').innerText = state.avatar;
+            document.getElementById('res-score-text').innerText = `${state.score}/5`;
+
+            const evaluations = [
+                "¡Necesitas un poco de calibración estelar!",
+                "¡Buen intento espacial, viajero!",
+                "¡Casi perfecto, dominas la constelación!",
+                "¡Perfecto! Eres un sabio del Cosmos 🌟"
+            ];
+
+            let evaluationText = evaluations[1];
+            if (state.score === 0 || state.score === 1) evaluationText = evaluations[0];
+            else if (state.score === 5) evaluationText = evaluations[3];
+            else if (state.score === 4) evaluationText = evaluations[2];
+
+            document.getElementById('res-evaluation').innerText = evaluationText;
+
+            if (state.score >= 4) {
+                const emojis = state.perfect ? ["❤️", "✨", "🌟", "🪐", "🏆"] : ["👍", "🚀", "🪐"];
+                for (let i = 0; i < 40; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                    confetti.className = "confetti-piece";
+                    confetti.style.left = `${Math.random() * 90 + 5}vw`;
+                    confetti.style.animationDelay = `${Math.random() * 1.5}s`;
+                    confetti.style.animationDuration = `${Math.random() * 2 + 1.5}s`;
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 4000);
+                }
+            }
+        }
+
+        async function handleSaveQuestion() {
+            const author = "Explorador"; 
+            const lvl = document.getElementById('create-lvl').value;
+            const sub = document.getElementById('create-sub').value;
+            const qText = document.getElementById('create-q').value.trim();
+            const correctA = document.getElementById('create-a').value.trim();
+            const wrong1 = document.getElementById('create-w1').value.trim();
+            const wrong2 = document.getElementById('create-w2').value.trim();
+
+            if (!qText || !correctA || !wrong1 || !wrong2) {
+                showToast("Por favor, llena todos los campos de la pregunta", "red", "⚠️");
+                return;
+            }
+
+            try {
+                const questionsRef = collection(db, 'artifacts', appId, 'public', 'data', 'questions');
+                await addDoc(questionsRef, {
+                    lvl: lvl,
+                    sub: sub,
+                    q: qText,
+                    a: correctA,
+                    w: [wrong1, wrong2],
+                    author: author,
+                    timestamp: Date.now()
+                });
+
+                showToast("¡Pregunta enviada con éxito!", "green", "🛸");
+                
+                document.getElementById('create-q').value = "";
+                document.getElementById('create-a').value = "";
+                document.getElementById('create-w1').value = "";
+                document.getElementById('create-w2').value = "";
+
+                setTimeout(() => showScreen('screen-home'), 1500);
+            } catch (error) {
+                console.error("Firestore writing error: ", error);
+                showToast("Error de transmisión estelar", "red", "❌");
+            }
+        }
+
+        async function handleSaveScore() {
+            const name = document.getElementById('leaderboard-name').value.trim();
+            if (!name) {
+                showToast("Escribe un nombre de explorador", "red", "⚠️");
+                return;
+            }
+
+            try {
+                const leaderboardRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+                await addDoc(leaderboardRef, {
+                    name: name,
+                    avatar: state.avatar,
+                    score: state.score,
+                    level: state.lvl.toUpperCase(),
+                    subject: state.sub.toUpperCase(),
+                    timestamp: Date.now()
+                });
+
+                showToast("¡Inscripción exitosa en los líderes!", "green", "🏆");
+                document.getElementById('leaderboard-name').value = "";
+                
+                setTimeout(() => showScreen('screen-leaderboard'), 1500);
+            } catch (error) {
+                console.error("Error saving leaderboard:", error);
+                showToast("Fallo al contactar el panel", "red", "❌");
+            }
+        }
+
+        async function clearCloudLeaderboard() {
+            showToast("Función protegida administrativamente", "purple", "🪐");
+        }
+
+        function resetApp() {
+            sound.playClick();
+            state.score = 0;
+            state.idx = 0;
+            state.perfect = true;
+            showScreen('screen-home');
+        }
+
+        initAuth();
+
+    </script>
+</body>
+</html>
+```
